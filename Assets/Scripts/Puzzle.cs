@@ -7,10 +7,9 @@ public class Puzzle : MonoBehaviour
 {
     [SerializeField] GameObject numberDisplayPrefab;
 
-    [SerializeField] int NumRows = 3;
-    [SerializeField] int NumColumns = 3;
+    [SerializeField] int Size = 3;
 
-    int ArraySize => NumRows * NumColumns;
+    int ArraySize => Size * Size;
 
     int[] board;
     NumberDisplay[] numberDisplays;
@@ -43,26 +42,21 @@ public class Puzzle : MonoBehaviour
         }
     }
 
-    public void SetWidth(TMP_InputField input)
+    public void SetSize(TMP_InputField input)
     {
-        NumRows = int.Parse(input.text);
+        Size = int.Parse(input.text);
     }
-    public void SetHeight(TMP_InputField input)
-    {
-        NumColumns = int.Parse(input.text);
-    }
-
 
     //-- PRIVATE HELPERS
 
     private int Row(int index)
     {
-        return index / NumRows;
+        return index / Size;
     }
 
     private int Column(int index)
     {
-        return index % NumRows;
+        return index % Size;
     }
 
     private void ResetPuzzle()
@@ -78,15 +72,15 @@ public class Puzzle : MonoBehaviour
 
         // Calculate size relative to puzzle
         Vector2 puzzleSize = rectTransform.sizeDelta;
-        float dispWidth = puzzleSize.x / NumRows;
-        float dispHeight = puzzleSize.y / NumColumns;
+        float dispWidth = puzzleSize.x / Size;
+        float dispHeight = puzzleSize.y / Size;
         Vector2 displaySize = new Vector2(dispWidth - 2, dispHeight - 2);
 
         // Calculate position relative to puzzle
         int row = Row(index);
         int column = Column(index);
-        float meanRow = NumRows / 2f;
-        float meanColumn = NumColumns / 2f;
+        float meanRow = Size / 2f;
+        float meanColumn = Size / 2f;
         float stepX = column - meanColumn + 0.5f;            // this is just like z-scores
         float stepY = row - meanRow + 0.5f;
         float positionX = stepX * dispWidth;
