@@ -1,7 +1,10 @@
 using System.Collections.Generic;
+using System.Drawing;
 using TMPro;
 using Unity.VisualScripting;
+using Unity.VisualScripting.Antlr3.Runtime;
 using UnityEngine;
+using static UnityEngine.InputSystem.InputAction;
 
 public class Puzzle : MonoBehaviour
 {
@@ -21,6 +24,35 @@ public class Puzzle : MonoBehaviour
     }
 
     //-- PUBLIC METHODS
+
+    public void MoveBlank(CallbackContext context, int rowOffset, int colOffset)
+    {
+        if (context.performed) MoveBlank(rowOffset, colOffset);
+    }
+
+    public void MoveBlank(int rowOffset, int colOffset)
+    {
+        int blankIndex = FindBlank();
+        (int row, int col) blankCoord = Coord(blankIndex);
+        (int row, int col) targetCoord = (blankCoord.row + rowOffset, blankCoord.col + colOffset);
+
+        // Ensure move is within bounds
+        if (targetCoord.row >= 0 && targetCoord.row < Size && targetCoord.col >= 0 && targetCoord.col < Size)
+        {
+            // Swap blank with target
+            (board[Index(blankCoord)], board[Index(targetCoord)]) = (board[Index(targetCoord)], board[Index(blankCoord)]);
+            numberDisplays[Index(targetCoord)].DisplayNumber(board[Index(targetCoord)]);
+            numberDisplays[Index(blankCoord)].DisplayNumber(board[Index(blankCoord)]);
+            Debug.Log($"New blank index: {Index(targetCoord)}");
+        }
+    }
+
+    // Input binding methods
+    public void MoveBlankUp(CallbackContext context) => MoveBlank(context, -1, 0);
+    public void MoveBlankDown(CallbackContext context) => MoveBlank(context, 1, 0);
+    public void MoveBlankLeft(CallbackContext context) => MoveBlank(context, 0, -1);
+    public void MoveBlankRight(CallbackContext context) => MoveBlank(context, 0, 1);
+
 
     public void MakePuzzle()
     {
@@ -48,6 +80,30 @@ public class Puzzle : MonoBehaviour
     }
 
     //-- PRIVATE HELPERS
+
+    private int FindBlank()
+    {
+        for (int i = 0; i < board.Length; i++)
+        {
+            if (board[i] == 0)
+            {
+                return i;
+            }
+        }
+
+        // Should not execute: this is an error case
+        throw new KeyNotFoundException("Blank not found in board");
+    }
+
+    private int Index((int row, int col) coord)
+    {
+        return (coord.row * Size) + coord.col;
+    }
+
+    private (int,int) Coord(int index)
+    {
+        return (Row(index), Column(index));
+    }
 
     private int Row(int index)
     {

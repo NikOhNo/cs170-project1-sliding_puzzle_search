@@ -28,8 +28,11 @@ public class NumberDisplay : MonoBehaviour
         if (number == 0)
         {
             text.text = string.Empty;
+            name = "Blank";
+            transform.SetSiblingIndex(0);
             return;
         }
+        name = number.ToString();
         text.text = number.ToString();
     }
 }
