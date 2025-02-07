@@ -1,3 +1,4 @@
+using System;
 using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,11 +15,15 @@ public class Puzzle : MonoBehaviour
     [SerializeField] GameObject numberDisplayPrefab;
     [SerializeField] int size = 3;
     [SerializeField] float animationTime = 0.3f;
+    [SerializeField] TMP_InputField animationInput;
+    [SerializeField] TMP_InputField puzzleInput;
+    [SerializeField] TMP_Dropdown heuristicDropdown;
 
     public int PuzzleSize => size * size;
+    public Board Board;
 
-    Board board;
     int[] puzzle;
+    SearchAlgorithm searchAlgorithm;
     NumberDisplay[] numberDisplays;
     RectTransform rectTransform;
     private Coroutine animationRoutine = null;
@@ -39,15 +44,13 @@ public class Puzzle : MonoBehaviour
     {
         if (animationRoutine != null) return;
 
-        int blankIndex = board.FindBlank();
-        (int row, int col) blankCoord = board.Coord(blankIndex);
+        int blankIndex = Board.FindBlank();
+        (int row, int col) blankCoord = Board.Coord(blankIndex);
         (int row, int col) targetCoord = (blankCoord.row + rowOffset, blankCoord.col + colOffset);
 
-        // Ensure move is within bounds
-        if (targetCoord.row >= 0 && targetCoord.row < size && targetCoord.col >= 0 && targetCoord.col < size)
+        // Ensure move was made
+        if (Board.MoveBlank(rowOffset, colOffset))
         {
-            // Swap blank with target
-            board.Swap(blankCoord, targetCoord);
             animationRoutine = StartCoroutine(AnimateSliding(blankCoord, targetCoord));
         }
     }
@@ -62,14 +65,41 @@ public class Puzzle : MonoBehaviour
     public void MakePuzzle()
     {
         ResetPuzzle();
-        board = new();
-        board.Initialize(size, puzzle);
-        numberDisplays = new NumberDisplay[board.ArraySize];
+
+        SetAnimationTime(animationInput);
+        SetPuzzle(puzzleInput);
+        SetHeuristic(heuristicDropdown);
+
+        Board = new();
+        Board.Initialize(size, puzzle);
+        numberDisplays = new NumberDisplay[Board.ArraySize];
 
         // Create Displays
         for (int i = 0; i < PuzzleSize; i++)
         {
             numberDisplays[i] = CreateDisplay(i);
+        }
+    }
+
+    private void SetHeuristic(TMP_Dropdown algorithmDropdown)
+    {
+        string heuristicString = algorithmDropdown.captionText.text;
+        Hueristic heuristic;
+
+        switch (heuristicString)
+        {
+            case "Uniform Cost":
+                heuristic = new UniformCost();
+                break;
+            case "A* Manhattan":
+                heuristic = new A_Manhattan();
+                break;
+            case "A* Misplaced":
+                heuristic = new A_Misplaced();
+                break;
+            default:
+                Debug.LogError("Unrecognized algorithm in dropdown!");
+                break;
         }
     }
 
@@ -96,13 +126,13 @@ public class Puzzle : MonoBehaviour
 
     private void ResetPuzzle()
     {
-        board = null;
+        Board = null;
         DestroyDisplays();
     }
 
     private NumberDisplay CreateDisplay(int index)
     {
-        int value = board.GetValue(index);
+        int value = Board.GetValue(index);
         NumberDisplay display = Instantiate(numberDisplayPrefab, this.transform).GetComponent<NumberDisplay>();
 
         // Calculate size relative to puzzle
@@ -127,8 +157,8 @@ public class Puzzle : MonoBehaviour
         Vector2 blankPos = CalculateDisplayPosition(blank);
         Vector2 targetPos = CalculateDisplayPosition(target);
 
-        NumberDisplay blankDisplay = numberDisplays[board.Index(blank)];
-        NumberDisplay targetDisplay = numberDisplays[board.Index(target)];
+        NumberDisplay blankDisplay = numberDisplays[Board.Index(blank)];
+        NumberDisplay targetDisplay = numberDisplays[Board.Index(target)];
 
         // Animates the sliding
         float elapsedTime = 0f;
@@ -144,16 +174,16 @@ public class Puzzle : MonoBehaviour
         targetDisplay.SetRTPosition(blankPos);
 
         // Swaps displays index in list
-        var temp = numberDisplays[board.Index(blank)];
-        numberDisplays[board.Index(blank)] = targetDisplay;
-        numberDisplays[board.Index(target)] = temp;
+        var temp = numberDisplays[Board.Index(blank)];
+        numberDisplays[Board.Index(blank)] = targetDisplay;
+        numberDisplays[Board.Index(target)] = temp;
 
         animationRoutine = null;
     }
 
     private Vector2 CalculateDisplayPosition((int,int) coord)
     {
-        return CalculateDisplayPosition(board.Index(coord));
+        return CalculateDisplayPosition(Board.Index(coord));
     }
 
     private Vector2 CalculateDisplayPosition(int index)
@@ -162,8 +192,8 @@ public class Puzzle : MonoBehaviour
         float dispWidth = puzzleSize.x / size;
         float dispHeight = puzzleSize.y / size;
 
-        int row = board.Row(index);
-        int column = board.Column(index);
+        int row = Board.Row(index);
+        int column = Board.Column(index);
         float meanRow = size / 2f;
         float meanColumn = size / 2f;
         float stepX = column - meanColumn + 0.5f;            // this is just like z-scores

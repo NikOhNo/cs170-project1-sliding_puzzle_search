@@ -1,13 +1,14 @@
 using System.Collections.Generic;
 using System.Drawing;
 using UnityEngine;
+using static UnityEngine.InputSystem.InputAction;
 
 public class Board
 {
     int[] board;
-    public int ArraySize => size * size;
+    public int ArraySize => Size * Size;
 
-    private int size;
+    public int Size;
 
     /// <summary>
     /// Sets up the board and initial values based off the puzzle passed in.
@@ -16,13 +17,34 @@ public class Board
     /// <param name="puzzle"></param>
     public void Initialize(int size, int[] puzzle)
     {
-        this.size = size;
+        this.Size = size;
         board = new int[ArraySize];
 
         for (int i = 0; i < ArraySize; i++)
         {
             board[i] = puzzle[i];
         }
+    }
+
+    public void MoveBlankUp() => MoveBlank(-1, 0);
+    public void MoveBlankDown() => MoveBlank(1, 0);
+    public void MoveBlankLeft() => MoveBlank(0, -1);
+    public void MoveBlankRight() => MoveBlank(0, 1);
+
+    public bool MoveBlank(int rowOffset, int colOffset)
+    {
+        int blankIndex = FindBlank();
+        (int row, int col) blankCoord = Coord(blankIndex);
+        (int row, int col) targetCoord = (blankCoord.row + rowOffset, blankCoord.col + colOffset);
+
+        // Ensure move is within bounds
+        if (targetCoord.row >= 0 && targetCoord.row < Size && targetCoord.col >= 0 && targetCoord.col < Size)
+        {
+            // Swap blank with target
+            Swap(blankCoord, targetCoord);
+            return true;
+        }
+        return false;
     }
 
     public int GetValue((int,int) coord)
@@ -46,7 +68,21 @@ public class Board
 
     public int Index((int row, int col) coord)
     {
-        return (coord.row * size) + coord.col;
+        return (coord.row * Size) + coord.col;
+    }
+
+    public int FindValue(int value)
+    {
+        for (int i = 0; i < board.Length; i++)
+        {
+            if (board[i] == value)
+            {
+                return i;
+            }
+        }
+
+        // Should not execute: this is an error case
+        throw new KeyNotFoundException("Value not found in board");
     }
 
     /// <summary>
@@ -75,11 +111,11 @@ public class Board
 
     public int Row(int index)
     {
-        return index / size;
+        return index / Size;
     }
 
     public int Column(int index)
     {
-        return index % size;
+        return index % Size;
     }
 }
