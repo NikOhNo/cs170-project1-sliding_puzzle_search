@@ -12,10 +12,13 @@ using static UnityEngine.InputSystem.InputAction;
 public class Puzzle : MonoBehaviour
 {
     [SerializeField] GameObject numberDisplayPrefab;
-    [SerializeField] int Size = 3;
+    [SerializeField] int size = 3;
     [SerializeField] float animationTime = 0.3f;
 
+    public int PuzzleSize => size * size;
+
     Board board;
+    int[] puzzle;
     NumberDisplay[] numberDisplays;
     RectTransform rectTransform;
     private Coroutine animationRoutine = null;
@@ -41,12 +44,11 @@ public class Puzzle : MonoBehaviour
         (int row, int col) targetCoord = (blankCoord.row + rowOffset, blankCoord.col + colOffset);
 
         // Ensure move is within bounds
-        if (targetCoord.row >= 0 && targetCoord.row < Size && targetCoord.col >= 0 && targetCoord.col < Size)
+        if (targetCoord.row >= 0 && targetCoord.row < size && targetCoord.col >= 0 && targetCoord.col < size)
         {
             // Swap blank with target
             board.Swap(blankCoord, targetCoord);
             animationRoutine = StartCoroutine(AnimateSliding(blankCoord, targetCoord));
-            Debug.Log($"New blank index: {board.Index(targetCoord)}");
         }
     }
 
@@ -61,21 +63,28 @@ public class Puzzle : MonoBehaviour
     {
         ResetPuzzle();
         board = new();
-        board.Initialize(Size);
+        board.Initialize(size, puzzle);
         numberDisplays = new NumberDisplay[board.ArraySize];
 
-        // Set Puzzle
-
         // Create Displays
-        for (int i = 0; i < board.ArraySize; i++)
+        for (int i = 0; i < PuzzleSize; i++)
         {
             numberDisplays[i] = CreateDisplay(i);
         }
     }
 
-    public void SetSize(TMP_InputField input)
+    public void SetPuzzle(TMP_InputField input)
     {
-        Size = int.Parse(input.text);
+        if (input.text.Length != PuzzleSize)
+        {
+            Debug.LogError($"INVALID PUZZLE: Puzzle is not of size {PuzzleSize}");
+        }
+
+        puzzle = new int[PuzzleSize];
+        for (int i = 0; i < PuzzleSize; i++)
+        {
+            puzzle[i] = int.Parse(input.text[i].ToString());
+        }
     }
 
     public void SetAnimationTime(TMP_InputField input)
@@ -98,8 +107,8 @@ public class Puzzle : MonoBehaviour
 
         // Calculate size relative to puzzle
         Vector2 puzzleSize = rectTransform.sizeDelta;
-        float dispWidth = puzzleSize.x / Size;
-        float dispHeight = puzzleSize.y / Size;
+        float dispWidth = puzzleSize.x / size;
+        float dispHeight = puzzleSize.y / size;
         Vector2 displaySize = new Vector2(dispWidth - 2, dispHeight - 2);
 
         // Calculate position relative to puzzle
@@ -150,13 +159,13 @@ public class Puzzle : MonoBehaviour
     private Vector2 CalculateDisplayPosition(int index)
     {
         Vector2 puzzleSize = rectTransform.sizeDelta;
-        float dispWidth = puzzleSize.x / Size;
-        float dispHeight = puzzleSize.y / Size;
+        float dispWidth = puzzleSize.x / size;
+        float dispHeight = puzzleSize.y / size;
 
         int row = board.Row(index);
         int column = board.Column(index);
-        float meanRow = Size / 2f;
-        float meanColumn = Size / 2f;
+        float meanRow = size / 2f;
+        float meanColumn = size / 2f;
         float stepX = column - meanColumn + 0.5f;            // this is just like z-scores
         float stepY = row - meanRow + 0.5f;
         float positionX = stepX * dispWidth;

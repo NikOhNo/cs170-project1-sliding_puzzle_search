@@ -9,18 +9,21 @@ public class Board
 
     private int size;
 
-    public void Initialize(int size)
+    /// <summary>
+    /// Sets up the board and initial values based off the puzzle passed in.
+    /// </summary>
+    /// <param name="size"></param>
+    /// <param name="puzzle"></param>
+    public void Initialize(int size, int[] puzzle)
     {
         this.size = size;
         board = new int[ArraySize];
 
-        for (int i = 1; i < board.Length; i++)
+        for (int i = 0; i < ArraySize; i++)
         {
-            board[i - 1] = i;
+            board[i] = puzzle[i];
         }
-        board[board.Length - 1] = 0;
     }
-
 
     public int GetValue((int,int) coord)
     {
@@ -31,17 +34,26 @@ public class Board
         return board[index];
     }
 
+    /// <summary>
+    /// Swaps value of coord and target coord within the array
+    /// </summary>
+    /// <param name="coord"></param>
+    /// <param name="targetCoord"></param>
     public void Swap((int, int) coord, (int, int) targetCoord)
     {
         (board[Index(coord)], board[Index(targetCoord)]) = (board[Index(targetCoord)], board[Index(coord)]);
     }
-
 
     public int Index((int row, int col) coord)
     {
         return (coord.row * size) + coord.col;
     }
 
+    /// <summary>
+    /// Finds the index of where the blank is located on the board
+    /// </summary>
+    /// <returns></returns>
+    /// <exception cref="KeyNotFoundException"></exception>
     public int FindBlank()
     {
         for (int i = 0; i < board.Length; i++)
