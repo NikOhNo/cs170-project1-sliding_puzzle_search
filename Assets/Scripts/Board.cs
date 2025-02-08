@@ -7,6 +7,7 @@ public class Board
 {
     int[] board;
     public int ArraySize => Size * Size;
+    public int[] Array => board;
 
     public int Size;
 
@@ -89,7 +90,7 @@ public class Board
         }
 
         // Should not execute: this is an error case
-        throw new KeyNotFoundException("Value not found in board");
+        throw new KeyNotFoundException($"Value not found in board: {value}");
     }
 
     /// <summary>

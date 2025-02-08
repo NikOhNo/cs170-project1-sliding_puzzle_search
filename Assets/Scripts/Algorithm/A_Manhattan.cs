@@ -11,12 +11,12 @@ public class A_Manhattan : Heuristic
     private int ManhattanDistance(Board board)
     {
         int distance = 0;
-        for (int i = 0; i < board.ArraySize; i++)
+        for (int i = 0; i < board.ArraySize - 1; i++)
         {
-            // coord where value should be
+            // coordinate where value should be
             (int row, int col) correctCoord = board.Coord(i);
 
-            // coord where value currently is
+            // coordinate where value currently is
             int currentIndex = board.FindValue(i + 1);
             (int row, int col) currentCoord = board.Coord(currentIndex);
 

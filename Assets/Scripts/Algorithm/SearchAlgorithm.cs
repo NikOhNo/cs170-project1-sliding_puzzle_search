@@ -24,7 +24,8 @@ public class SearchAlgorithm
         SearchNode initial = MakeNode(puzzle);
         queueingFunction.Enqueue(initial, initial.TotalCost);
 
-        // TODO: Sanity check
+        // exit early if not solvable
+        if (!SanityCheck.isSolvable(puzzle)) return Result(watch, null, 0, 0);
 
         while (true)
         {
@@ -73,7 +74,7 @@ public class SearchAlgorithm
         SearchResult result = new()
         {
             node = node,
-            solved = true,
+            solved = node != null,
             depth = node == null ? 0 : node.Cost, 
             expandedNodes = expanded,
             frontierNodes = frontier,
