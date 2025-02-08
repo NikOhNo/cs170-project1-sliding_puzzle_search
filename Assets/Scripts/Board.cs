@@ -126,4 +126,37 @@ public class Board
     {
         return index % Size;
     }
+
+    //-- OVERRIDES TO ENSURE COMPATIBILITY WITH HASH SET
+
+    public override bool Equals(object obj)
+    {
+        if (obj is not Board other || this.Size != other.Size)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < ArraySize; i++)
+        {
+            if (this.board[i] != other.board[i])
+            {
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    public override int GetHashCode()
+    {
+        unchecked
+        {
+            int hash = 17;
+            foreach (var num in board)
+            {
+                hash = hash * 31 + num.GetHashCode();
+            }
+            return hash;
+        }
+    }
 }

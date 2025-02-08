@@ -10,6 +10,7 @@ using Utils;
 public class SearchAlgorithm
 {
     protected Heuristic heuristic;
+    protected HashSet<Board> visitedStates;
     public SearchAlgorithm(Heuristic heuristic)
     {
         this.heuristic = heuristic;
@@ -17,21 +18,28 @@ public class SearchAlgorithm
 
     public SearchResult GeneralSearch(Puzzle puzzle)
     {
+        // variables for data tracking
         var watch = System.Diagnostics.Stopwatch.StartNew();
         int expanded = 0;
 
+        // setting up data structures
         PriorityQueue<SearchNode, int> queueingFunction = new();
+        visitedStates = new();
+
+        // creating initial node
         SearchNode initial = MakeNode(puzzle);
         queueingFunction.Enqueue(initial, initial.TotalCost);
+        visitedStates.Add(initial.BoardState);
 
         // exit early if not solvable
         if (!SanityCheck.isSolvable(puzzle)) return Result(watch, null, 0, 0);
 
         while (true)
         {
+            // no more nodes to visit
             if (queueingFunction.Count == 0) return Result(watch, null, expanded, queueingFunction.Count);
 
-            SearchNode node = queueingFunction.Dequeue();
+            SearchNode node = queueingFunction.Dequeue(); // setting next node
 
             if (Solved(node))
             {
@@ -105,12 +113,15 @@ public class SearchAlgorithm
             Board newBoard = node.BoardState.Clone();
             if (moveFunction(newBoard)) // Check if move is possible
             {
+                if (visitedStates.Contains(newBoard)) continue;
+
                 newNodes.Add(new SearchNode(
                     newBoard,
                     node,
                     node.Cost + 1,
                     heuristic.Calculate(newBoard),
                     action));
+                visitedStates.Add(newBoard);
             }
         }
 
