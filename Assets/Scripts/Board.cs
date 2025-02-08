@@ -26,10 +26,10 @@ public class Board
         }
     }
 
-    public void MoveBlankUp() => MoveBlank(-1, 0);
-    public void MoveBlankDown() => MoveBlank(1, 0);
-    public void MoveBlankLeft() => MoveBlank(0, -1);
-    public void MoveBlankRight() => MoveBlank(0, 1);
+    public bool MoveBlankUp() => MoveBlank(-1, 0);
+    public bool MoveBlankDown() => MoveBlank(1, 0);
+    public bool MoveBlankLeft() => MoveBlank(0, -1);
+    public bool MoveBlankRight() => MoveBlank(0, 1);
 
     public bool MoveBlank(int rowOffset, int colOffset)
     {
@@ -45,6 +45,13 @@ public class Board
             return true;
         }
         return false;
+    }
+
+    public Board Clone()
+    {
+        Board newBoard = new();
+        newBoard.Initialize(this.Size, (int[])this.board.Clone());
+        return newBoard;
     }
 
     public int GetValue((int,int) coord)

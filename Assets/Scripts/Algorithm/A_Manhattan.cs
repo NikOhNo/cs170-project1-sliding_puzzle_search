@@ -1,12 +1,16 @@
 using System.Data;
 using UnityEngine;
 
-public class A_Manhattan : Hueristic
+public class A_Manhattan : Heuristic
 {
-    private int ManhattanDistance(SearchNode node)
+    public override int Calculate(Board board)
+    {
+        return ManhattanDistance(board);
+    }
+
+    private int ManhattanDistance(Board board)
     {
         int distance = 0;
-        Board board = node.BoardState;
         for (int i = 0; i < board.ArraySize; i++)
         {
             // coord where value should be

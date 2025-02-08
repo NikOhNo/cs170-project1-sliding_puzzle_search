@@ -1,12 +1,16 @@
 using UnityEngine;
 
-public class A_Misplaced : Hueristic
+public class A_Misplaced : Heuristic
 {
-    private int MisplacedTile(SearchNode node)
+    public override int Calculate(Board board)
+    {
+        return MisplacedTile(board);
+    }
+
+    private int MisplacedTile(Board board)
     {
         int numMisplaced = 0;
 
-        Board board = node.BoardState;
         // Get sum of every number in incorrect position
         for (int i = 0; i < board.ArraySize - 1; i++)
         {

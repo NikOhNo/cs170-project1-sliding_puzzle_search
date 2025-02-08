@@ -1,5 +1,9 @@
 using UnityEngine;
 
-public class UniformCost : Hueristic
+public class UniformCost : Heuristic
 {
+    public override int Calculate(Board board)
+    {
+        return 0;
+    }
 }

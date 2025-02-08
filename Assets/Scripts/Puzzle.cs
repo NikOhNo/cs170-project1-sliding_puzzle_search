@@ -81,26 +81,37 @@ public class Puzzle : MonoBehaviour
         }
     }
 
-    private void SetHeuristic(TMP_Dropdown algorithmDropdown)
+    public void SolvePuzzle()
     {
-        string heuristicString = algorithmDropdown.captionText.text;
-        Hueristic heuristic;
+        SearchAlgorithm searchAlgo = new(SetHeuristic(heuristicDropdown));
+        searchAlgo.GeneralSearch(this);
+    }
+
+    private Heuristic SetHeuristic(TMP_Dropdown heuristicDropdown)
+    {
+        string heuristicString = heuristicDropdown.captionText.text;
+        Heuristic heuristic = null;
 
         switch (heuristicString)
         {
             case "Uniform Cost":
                 heuristic = new UniformCost();
+                Debug.Log("Uniform Cost heuristic chosen");
                 break;
             case "A* Manhattan":
                 heuristic = new A_Manhattan();
+                Debug.Log("A* Manhattan heuristic chosen");
                 break;
             case "A* Misplaced":
                 heuristic = new A_Misplaced();
+                Debug.Log("A* Misplaced heuristic chosen");
                 break;
             default:
-                Debug.LogError("Unrecognized algorithm in dropdown!");
+                Debug.LogError("Unrecognized heuristic in dropdown!");
                 break;
         }
+
+        return heuristic;
     }
 
     public void SetPuzzle(TMP_InputField input)

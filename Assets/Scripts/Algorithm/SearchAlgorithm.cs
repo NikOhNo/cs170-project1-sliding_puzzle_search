@@ -8,10 +8,36 @@ using Utils;
 
 public class SearchAlgorithm
 {
-    protected Puzzle puzzle;
-    public SearchAlgorithm(Puzzle puzzle)
+    protected Heuristic heuristic;
+    public SearchAlgorithm(Heuristic heuristic)
     {
-        this.puzzle = puzzle;
+        this.heuristic = heuristic;
+    }
+
+    public SearchNode GeneralSearch(Puzzle puzzle)
+    {
+        PriorityQueue<SearchNode, int> queueingFunction = new();
+        SearchNode initial = MakeNode(puzzle);
+        queueingFunction.Enqueue(initial, initial.TotalCost);
+
+        while (true)
+        {
+            if (queueingFunction.Count == 0) return null;
+
+            SearchNode node = queueingFunction.Dequeue();
+
+            if (Solved(node))
+            {
+                Debug.Log("FOUND SOLUTION YAY");
+                return node;
+            }
+
+            List<SearchNode> expandedNodes = Expand(node);
+            foreach (var expNode in expandedNodes)
+            {
+                queueingFunction.Enqueue(expNode, expNode.TotalCost);
+            }
+        }
     }
 
     public bool Solved(SearchNode node)
@@ -33,26 +59,6 @@ public class SearchAlgorithm
         return true;
     }
 
-    public SearchNode GeneralSearch(Puzzle puzzle, PriorityQueue<SearchNode, int> queueingFunction)
-    {
-        SearchNode initial = MakeNode(puzzle);
-        queueingFunction.Enqueue(initial, initial.TotalCost);
-
-        while (true)
-        {
-            if (queueingFunction.Count == 0) return null;
-
-            SearchNode node = queueingFunction.Dequeue();
-
-            if (Solved(node))
-            {
-                return node;
-            }
-            
-            //queueingFunction.Add()
-        }
-    }
-
     /// <summary>
     /// Creates all possible nodes from current node
     /// </summary>
@@ -61,10 +67,27 @@ public class SearchAlgorithm
     public List<SearchNode> Expand(SearchNode node)
     {
         List<SearchNode> newNodes = new();
+        var moves = new (Action action, Func<Board, bool> moveFunction)[]
+        {
+            (Action.Up, board => board.MoveBlankUp()),
+            (Action.Down, board => board.MoveBlankDown()),
+            (Action.Left, board => board.MoveBlankLeft()),
+            (Action.Right, board => board.MoveBlankRight())
+        };
 
-        Board board = node.BoardState;
-
-
+        foreach (var (action, moveFunction) in moves)
+        {
+            Board newBoard = node.BoardState.Clone();
+            if (moveFunction(newBoard)) // Check if move is possible
+            {
+                newNodes.Add(new SearchNode(
+                    newBoard,
+                    node,
+                    node.Cost + 1,
+                    heuristic.Calculate(newBoard),
+                    action));
+            }
+        }
 
         return newNodes;
     }
