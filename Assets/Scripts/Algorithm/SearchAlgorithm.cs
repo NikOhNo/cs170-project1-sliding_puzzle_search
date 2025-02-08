@@ -1,3 +1,4 @@
+using JetBrains.Annotations;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -14,25 +15,31 @@ public class SearchAlgorithm
         this.heuristic = heuristic;
     }
 
-    public SearchNode GeneralSearch(Puzzle puzzle)
+    public SearchResult GeneralSearch(Puzzle puzzle)
     {
+        var watch = System.Diagnostics.Stopwatch.StartNew();
+        int expanded = 0;
+
         PriorityQueue<SearchNode, int> queueingFunction = new();
         SearchNode initial = MakeNode(puzzle);
         queueingFunction.Enqueue(initial, initial.TotalCost);
 
+        // TODO: Sanity check
+
         while (true)
         {
-            if (queueingFunction.Count == 0) return null;
+            if (queueingFunction.Count == 0) return Result(watch, null, expanded, queueingFunction.Count);
 
             SearchNode node = queueingFunction.Dequeue();
 
             if (Solved(node))
             {
                 Debug.Log("FOUND SOLUTION YAY");
-                return node;
+                return Result(watch, node, expanded, queueingFunction.Count);
             }
 
             List<SearchNode> expandedNodes = Expand(node);
+            expanded += expandedNodes.Count;
             foreach (var expNode in expandedNodes)
             {
                 queueingFunction.Enqueue(expNode, expNode.TotalCost);
@@ -57,6 +64,23 @@ public class SearchAlgorithm
         }
         // Otherwise puzzle is solved
         return true;
+    }
+
+    private SearchResult Result(System.Diagnostics.Stopwatch watch, SearchNode node, int expanded, int frontier)
+    {
+        watch.Stop();
+
+        SearchResult result = new()
+        {
+            node = node,
+            solved = true,
+            depth = node == null ? 0 : node.Cost, 
+            expandedNodes = expanded,
+            frontierNodes = frontier,
+            time = watch.ElapsedMilliseconds,
+        };
+
+        return result;
     }
 
     /// <summary>

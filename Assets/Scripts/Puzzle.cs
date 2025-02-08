@@ -12,6 +12,7 @@ using static UnityEngine.InputSystem.InputAction;
 
 public class Puzzle : MonoBehaviour
 {
+    [SerializeField] ResultsDisplay resultsDisplay;
     [SerializeField] GameObject numberDisplayPrefab;
     [SerializeField] int size = 3;
     [SerializeField] float animationTime = 0.3f;
@@ -21,6 +22,8 @@ public class Puzzle : MonoBehaviour
 
     public int PuzzleSize => size * size;
     public Board Board;
+
+    public bool AnimationComplete = false;
 
     int[] puzzle;
     SearchAlgorithm searchAlgorithm;
@@ -51,6 +54,7 @@ public class Puzzle : MonoBehaviour
         // Ensure move was made
         if (Board.MoveBlank(rowOffset, colOffset))
         {
+            AnimationComplete = false;
             animationRoutine = StartCoroutine(AnimateSliding(blankCoord, targetCoord));
         }
     }
@@ -66,7 +70,6 @@ public class Puzzle : MonoBehaviour
     {
         ResetPuzzle();
 
-        SetAnimationTime(animationInput);
         SetPuzzle(puzzleInput);
         SetHeuristic(heuristicDropdown);
 
@@ -84,7 +87,8 @@ public class Puzzle : MonoBehaviour
     public void SolvePuzzle()
     {
         SearchAlgorithm searchAlgo = new(SetHeuristic(heuristicDropdown));
-        searchAlgo.GeneralSearch(this);
+        SearchResult solution = searchAlgo.GeneralSearch(this);
+        resultsDisplay.SetDisplay(solution);
     }
 
     private Heuristic SetHeuristic(TMP_Dropdown heuristicDropdown)
@@ -189,6 +193,7 @@ public class Puzzle : MonoBehaviour
         numberDisplays[Board.Index(blank)] = targetDisplay;
         numberDisplays[Board.Index(target)] = temp;
 
+        AnimationComplete = true;
         animationRoutine = null;
     }
 
