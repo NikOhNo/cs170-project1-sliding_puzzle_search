@@ -12,6 +12,7 @@ using static UnityEngine.InputSystem.InputAction;
 
 public class Puzzle : MonoBehaviour
 {
+    [SerializeField] ErrorDisplay errorDisplay;
     [SerializeField] ResultsDisplay resultsDisplay;
     [SerializeField] GameObject numberDisplayPrefab;
     [SerializeField] int size = 3;
@@ -40,7 +41,7 @@ public class Puzzle : MonoBehaviour
 
     public void MoveBlank(CallbackContext context, int rowOffset, int colOffset)
     {
-        if (context.performed) MoveBlank(rowOffset, colOffset);
+        if (context.performed && Board != null) MoveBlank(rowOffset, colOffset);
     }
 
     public void MoveBlank(int rowOffset, int colOffset)
@@ -70,7 +71,7 @@ public class Puzzle : MonoBehaviour
     {
         ResetPuzzle();
 
-        SetPuzzle(puzzleInput);
+        if (!SetPuzzle(puzzleInput)) return;
         SetHeuristic(heuristicDropdown);
 
         Board = new();
@@ -111,30 +112,45 @@ public class Puzzle : MonoBehaviour
                 Debug.Log("A* Misplaced heuristic chosen");
                 break;
             default:
-                Debug.LogError("Unrecognized heuristic in dropdown!");
+                errorDisplay.OpenDisplay("Unrecognized heuristic in dropdown!");
                 break;
         }
 
         return heuristic;
     }
 
-    public void SetPuzzle(TMP_InputField input)
+    public bool SetPuzzle(TMP_InputField input)
     {
         if (input.text.Length != PuzzleSize)
         {
-            Debug.LogError($"INVALID PUZZLE: Puzzle is not of size {PuzzleSize}");
+            errorDisplay.OpenDisplay($"INVALID PUZZLE: Puzzle string is not of size {PuzzleSize}");
+            return false;
         }
 
-        puzzle = new int[PuzzleSize];
-        for (int i = 0; i < PuzzleSize; i++)
+        try
         {
-            puzzle[i] = int.Parse(input.text[i].ToString());
+            puzzle = new int[PuzzleSize];
+            for (int i = 0; i < PuzzleSize; i++)
+            {
+                puzzle[i] = int.Parse(input.text[i].ToString());
+            }
+            return true;
+        }
+        catch (Exception e)
+        {
+            errorDisplay.OpenDisplay("INVALID PUZZLE CHARACTER DETECTED");
+            return false;
         }
     }
 
     public void SetAnimationTime(TMP_InputField input)
     {
         animationTime = float.Parse(input.text);
+        if (animationTime < 0)
+        {
+            errorDisplay.OpenDisplay("Animation Time less than 0. Setting value to 0.");
+            animationTime = 0;
+        }
     }
 
     //-- PRIVATE HELPERS
