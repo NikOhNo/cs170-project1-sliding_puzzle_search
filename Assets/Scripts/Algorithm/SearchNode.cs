@@ -1,5 +1,3 @@
-using UnityEngine;
-
 public class SearchNode
 {
     public Board BoardState;

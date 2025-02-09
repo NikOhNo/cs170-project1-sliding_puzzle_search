@@ -1,7 +1,4 @@
 using System.Collections.Generic;
-using System.Drawing;
-using UnityEngine;
-using static UnityEngine.InputSystem.InputAction;
 
 public class Board
 {
