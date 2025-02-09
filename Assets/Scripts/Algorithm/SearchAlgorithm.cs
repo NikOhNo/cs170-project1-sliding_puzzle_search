@@ -28,11 +28,12 @@ public class SearchAlgorithm
 
         // creating initial node
         SearchNode initial = MakeNode(puzzle);
+        expanded++;
         queueingFunction.Enqueue(initial, initial.TotalCost);
         visitedStates.Add(initial.BoardState);
-
+        
         // exit early if not solvable
-        if (!SanityCheck.isSolvable(puzzle)) return Result(watch, null, 0, 0);
+        if (!SanityCheck.isSolvable(puzzle)) return Result(watch, null, expanded, 0);
 
         while (true)
         {
@@ -108,11 +109,13 @@ public class SearchAlgorithm
             (Action.Right, board => board.MoveBlankRight())
         };
 
+        // simulate all possible moves
         foreach (var (action, moveFunction) in moves)
         {
             Board newBoard = node.BoardState.Clone();
             if (moveFunction(newBoard)) // Check if move is possible
             {
+                // dont add repeated states
                 if (visitedStates.Contains(newBoard)) continue;
 
                 newNodes.Add(new SearchNode(
